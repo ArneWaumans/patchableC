@@ -1,7 +1,7 @@
 #include "getpatchnames.h"
 
 
-void initPatchFiles(patches *patchObj, int preAlloc)
+static void initPatchFiles(patches *patchObj, int preAlloc)
 {
   patchObj->patches = malloc(preAlloc * sizeof(char*));
   patchObj->numPatchFiles = 0;

@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <string.h>
 
-#define MAXBUF 200
+#include "config.h"
 
 typedef struct patches
 {
@@ -15,7 +15,7 @@ typedef struct patches
   char **patches;
 } patches;
 
-void initPatchFiles(patches*, int);
+static void initPatchFiles(patches*, int);
 void freePatchFiles(patches*);
 patches* getPatchFiles();
 
