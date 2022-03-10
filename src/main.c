@@ -8,12 +8,12 @@
 
 int main()
 {
-  patches patchFiles = getPatchFiles();
+  patches *patchFiles = getPatchFiles();
   
-  for (int i = 0; i < patchFiles.numPatchFiles; i++)
-    printf("patch file: %s\n", patchFiles.patches[i]);
+  for (int i = 0; i < patchFiles->numPatchFiles; i++)
+    printf("patch file: %s\n", patchFiles->patches[i]);
  
-  printf("total patches: %d\n", patchFiles.numPatchFiles);
+  printf("total patches: %d\n", patchFiles->numPatchFiles);
 
-  freePatchFiles(&patchFiles);
+  freePatchFiles(patchFiles);
 }

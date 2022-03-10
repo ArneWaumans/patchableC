@@ -17,6 +17,6 @@ typedef struct patches
 
 void initPatchFiles(patches*, int);
 void freePatchFiles(patches*);
-patches getPatchFiles();
+patches* getPatchFiles();
 
 #endif

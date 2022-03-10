@@ -12,13 +12,14 @@ void freePatchFiles(patches *patchObj)
   for (int i = 0; i < patchObj->numPatchFiles; i++)
     free(patchObj->patches[i]);
   free(patchObj->patches);
+  free(patchObj);
 }
 
-patches getPatchFiles()
+patches* getPatchFiles()
 {
-  int allocNumPatchFiles = 10;
-  patches patchFiles;
-  initPatchFiles(&patchFiles, allocNumPatchFiles);
+  int allocNumPatchFiles = 8;
+  patches *patchFiles = malloc(sizeof(patches));
+  initPatchFiles(patchFiles, allocNumPatchFiles);
 
   char patchDir[MAXBUF];
   getcwd(patchDir, MAXBUF);
@@ -33,14 +34,14 @@ patches getPatchFiles()
     int i = 0;
     while((ent = readdir(dir)) != NULL)
     {
-      patchFiles.numPatchFiles++;
+      patchFiles->numPatchFiles++;
       if (i+1 > allocNumPatchFiles)
       {
-        patchFiles.patches = realloc(patchFiles.patches, allocNumPatchFiles + 5);
+        patchFiles->patches = realloc(patchFiles->patches, allocNumPatchFiles + 5);
         allocNumPatchFiles += 5;
       }
-      patchFiles.patches[i] = malloc((strlen(ent->d_name) + 1) * sizeof(char));
-      strcpy(patchFiles.patches[i], ent->d_name);
+      patchFiles->patches[i] = malloc((strlen(ent->d_name) + 1) * sizeof(char));
+      strcpy(patchFiles->patches[i], ent->d_name);
 
       i++;
     }
