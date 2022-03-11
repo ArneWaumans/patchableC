@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "config.h"
 
@@ -15,6 +16,7 @@ typedef struct patchData
   int codelines[2];
 } patchData;
 
+static patchData* disectPatches(char **patchLines, size_t lineAmount);
 static patchData* getPatchComps(char *patchFilePath);
 void createPatchFiles(char **patchFilePaths);
 

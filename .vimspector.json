@@ -1,0 +1,25 @@
+{
+  "configurations": {
+    "Launch": {
+      "adapter": "vscode-cpptools",
+      "filetypes": [ "cpp", "c", "objc", "rust" ], 
+      "configuration": {
+        "request": "launch",
+        "program": "patchable",
+        "cwd": ".",
+        "externalConsole": true,
+        "MIMode": "lldb",
+        "miDebuggerPath": "/usr/bin/lldb"
+      }
+    },
+    "Attach": {
+      "adapter": "vscode-cpptools",
+      "filetypes": [ "cpp", "c", "objc", "rust" ], 
+      "configuration": {
+        "request": "attach",
+        "program": "patchable",
+        "MIMode": "lldb"
+      }
+    }
+  }
+}
