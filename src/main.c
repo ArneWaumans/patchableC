@@ -53,5 +53,7 @@ int main()
 
   freePatchFiles(patchFiles);
 
+  createPatchFiles(patchFiles->patches);
+
   removeFolders();
 }

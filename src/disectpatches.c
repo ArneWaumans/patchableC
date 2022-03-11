@@ -14,14 +14,16 @@ static patchData* getPatchComps(char *patchFilePath)
   if (patchFile == NULL)
     exit(EXIT_FAILURE);
 
-  while((read = getline(&line, &len, patchFile)) != NULL)
-  {
-    printf("length of line: %s\n", read);
-    printf("text: %s\n", line);
-  }
+  /*while()*/ //help: https://solarianprogrammer.com/2019/04/03/c-programming-read-file-lines-fgets-getline-implement-portable-getline/
+  /*{*/
+    /*printf("length of line: %d\n", (int)read);*/
+    /*printf("text: %s\n", line);*/
+  /*}*/
+
+  return NULL;
 }
 
 void createPatchFiles(char **patchFilePaths)
 {
-  
+  getPatchComps("/home/arne/code/cproj/patchableC/patches/surf-2.0-homepage.diff");
 }
