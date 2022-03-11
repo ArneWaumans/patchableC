@@ -40,8 +40,10 @@ patches* getPatchFiles()
         patchFiles->patches = realloc(patchFiles->patches, allocNumPatchFiles + 5);
         allocNumPatchFiles += 5;
       }
-      patchFiles->patches[i] = malloc((strlen(ent->d_name) + 1) * sizeof(char));
-      strcpy(patchFiles->patches[i], ent->d_name);
+      patchFiles->patches[i] = malloc((strlen(ent->d_name) + strlen(patchDir) + 2) * sizeof(char));
+      strcpy(patchFiles->patches[i], patchDir);
+      strcat(patchFiles->patches[i], "/");
+      strcat(patchFiles->patches[i], ent->d_name);
 
       i++;
     }
