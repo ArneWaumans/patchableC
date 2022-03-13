@@ -6,11 +6,12 @@ void printPatchData(patchData* data)
   printf("patchname: %s\n", data->patchname);
   printf("filename: %s\n", data->filename);
   printf("place: %d\n", data->place);
-  printf("configlines: [%d, %d]", data->configlines[0], data->configlines[1]);
-  printf("codelines: [%d, %d]", data->codelines[0], data->codelines[1]);
+  printf("configlines: [%d, %d]\n", data->configlines[0], data->configlines[1]);
+  printf("codelines: [%d, %d]\n", data->codelines[0], data->codelines[1]);
+  printf("\n");
 }
 
-static unsigned int getNumFromString(char* numString)
+static unsigned int getNumFromString(char *numString)
 {
   numString = strtok(numString, "-");
   numString = strtok(NULL, ",");
@@ -20,9 +21,14 @@ static unsigned int getNumFromString(char* numString)
 
 void getNameFromString(char *nameString, patchData *data)
 {
-  nameString = strtok(nameString, "/");
-  nameString = strtok(NULL, " ");
-  memcpy(data->filename, nameString, strlen(nameString) * sizeof(char));
+  //printf("name: %s\n", nameString);
+
+  char cpyNameString[256];
+  memset(cpyNameString, '\0', sizeof(cpyNameString));
+  char *cpyNameStringPtr = strcpy(cpyNameString, nameString);
+  cpyNameStringPtr = strtok(cpyNameStringPtr, "/");
+  cpyNameStringPtr = strtok(NULL, " ");
+  strcpy(data->filename, cpyNameStringPtr);
 }
 
 static patchData* disectPatches(char **patchLines, size_t lineAmount)
@@ -34,6 +40,9 @@ static patchData* disectPatches(char **patchLines, size_t lineAmount)
   bool firstCommit = true;
   int prevDiffCount = 0;
 
+  char currentFileName[256];
+  int currentConfigLines[2] = {0, 0};
+
   for (int i = 0; i < lineAmount; i++)
   {
     printf("%d: %s", currentTextLine, patchLines[i]);
@@ -44,10 +53,6 @@ static patchData* disectPatches(char **patchLines, size_t lineAmount)
 
     if (diffMatch != NULL)
     {
-      printf("\033[0;32m");
-      printf("%d: Found 'diff' Match!\n", currentTextLine);
-      printf("\033[0m");
-
       prevDiffCount = 0;
 
       if (!firstCommit)
@@ -57,14 +62,15 @@ static patchData* disectPatches(char **patchLines, size_t lineAmount)
       }
       firstCommit = false;
      
-      char extractName[150];
-      memset(extractName, '\0', sizeof(extractName));
-      strcpy(extractName, patchLines[i]);
-      getNameFromString(extractName, &patches[currentPatch]);
-      printf("filename: %s\n", patches[currentPatch].filename);
-
-      patches[currentPatch].configlines[0] = currentTextLine;
-      patches[currentPatch].configlines[1] = currentTextLine + 3;
+      memset(currentFileName, '\0', sizeof(currentFileName));
+      strcpy(currentFileName, patchLines[i]);
+      getNameFromString(currentFileName, &patches[currentPatch]);
+      //printf("filename: %s\n", patches[currentPatch].filename);
+      currentConfigLines[0] = currentTextLine;
+      currentConfigLines[1] = currentTextLine + 3;
+      /*patches[currentPatch].configlines[0] = currentTextLine;*/
+      /*patches[currentPatch].configlines[1] = currentTextLine + 4;*/
+      memcpy(patches[currentPatch].configlines, currentConfigLines, sizeof(currentConfigLines));
     }
 
     if (atLine != NULL)
@@ -74,6 +80,9 @@ static patchData* disectPatches(char **patchLines, size_t lineAmount)
       if (prevDiffCount > 1)
       {
         patches[currentPatch].codelines[1] = currentTextLine - 1;
+        printf("currentFileName: %s\n", currentFileName);
+        getNameFromString(currentFileName, &patches[currentPatch]);
+        memcpy(patches[currentPatch].configlines, currentConfigLines, sizeof(currentConfigLines));
         currentPatch++;
       }
       
@@ -81,13 +90,15 @@ static patchData* disectPatches(char **patchLines, size_t lineAmount)
       memset(extractLineNumber, '\0', sizeof(extractLineNumber));
       strcpy(extractLineNumber, patchLines[i]);
       patches[currentPatch].place = getNumFromString(extractLineNumber);
-      printf("place: %d\n", patches[currentPatch].place);
+      //printf("place: %d\n", patches[currentPatch].place);
 
       patches[currentPatch].codelines[0] = currentTextLine;
     }
 
     currentTextLine++;
   }
+  getNameFromString(currentFileName, &patches[currentPatch]);
+  memcpy(patches[currentPatch].configlines, currentConfigLines, sizeof(currentConfigLines));
   patches[currentPatch].codelines[1] = currentTextLine - 1;
 
   return patches;
@@ -158,6 +169,10 @@ static patchData* getPatchComps(char *patchFilePath)
     }
   }
   patchData *patches = disectPatches(textFromFile, iterations);
+  for (int i = 0; i < 4; i++)
+  {
+    printPatchData(&patches[i]);
+  }
 
   fclose(patchFile);
   free(line);
@@ -170,5 +185,5 @@ static patchData* getPatchComps(char *patchFilePath)
 
 void createPatchFiles(char **patchFilePaths)
 {
-  getPatchComps("/home/arne/code/cproj/patchableC/patches/surf-2.0-homepage.diff");
+  getPatchComps("/home/arne/code/cproj/patchableC/patches/surf-clipboard-20200112-a6a8878.diff");
 }

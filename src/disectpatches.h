@@ -19,7 +19,7 @@ typedef struct patchData
 
 void printPatchData(patchData* data);
 static unsigned int getNumFromString(char *numString);
-void getNameFromString(char* nameString, patchData *data);
+void getNameFromString(char *nameString, patchData *data);
 static patchData* disectPatches(char **patchLines, size_t lineAmount);
 static patchData* getPatchComps(char *patchFilePath);
 void createPatchFiles(char **patchFilePaths);
