@@ -1,6 +1,6 @@
 #include "disectpatches.h"
 
-void printPatchData(patchData* data)
+void printPatchData(patchData *data)
 {
   printf("-----patchdata-----\n");
   printf("patchname: %s\n", data->patchname);
@@ -19,11 +19,14 @@ static unsigned int getNumFromString(char *numString)
   return atoi(numString);
 }
 
-void getNameFromString(char *nameString, patchData *data)
+void freePatchData(patchData *data)
 {
-  //printf("name: %s\n", nameString);
+  free(data);
+}
 
-  char cpyNameString[256];
+static void getNameFromString(char *nameString, patchData *data)
+{
+  char cpyNameString[MAXBUF];
   memset(cpyNameString, '\0', sizeof(cpyNameString));
   char *cpyNameStringPtr = strcpy(cpyNameString, nameString);
   cpyNameStringPtr = strtok(cpyNameStringPtr, "/");
@@ -31,16 +34,18 @@ void getNameFromString(char *nameString, patchData *data)
   strcpy(data->filename, cpyNameStringPtr);
 }
 
-static patchData* disectPatches(char **patchLines, size_t lineAmount)
+static returnPatchData disectPatches(char **patchLines, size_t lineAmount)
 {
-  patchData *patches = malloc(sizeof(patchData) * 5);
+  const unsigned int startPatchAmount = 8;
+  unsigned int patchAmount = startPatchAmount;
+  patchData *patches = malloc(sizeof(patchData) * startPatchAmount);
   unsigned int currentPatch = 0;
 
   unsigned int currentTextLine = 1;
   bool firstCommit = true;
   int prevDiffCount = 0;
 
-  char currentFileName[256];
+  char currentFileName[MAXBUF];
   int currentConfigLines[2] = {0, 0};
 
   for (int i = 0; i < lineAmount; i++)
@@ -48,7 +53,6 @@ static patchData* disectPatches(char **patchLines, size_t lineAmount)
     printf("%d: %s", currentTextLine, patchLines[i]);
 
     char *diffMatch = strstr(patchLines[i], "diff --git");
-
     char *atLine = strstr(patchLines[i], "@@");
 
     if (diffMatch != NULL)
@@ -58,6 +62,12 @@ static patchData* disectPatches(char **patchLines, size_t lineAmount)
       if (!firstCommit)
       {
         patches[currentPatch].codelines[1] = currentTextLine - 1;
+
+        if (currentPatch >= patchAmount - 1)
+        {
+          patchAmount += 5;
+          patches = realloc(patches, sizeof(patchData) * patchAmount);
+        }
         currentPatch++;
       }
       firstCommit = false;
@@ -65,11 +75,8 @@ static patchData* disectPatches(char **patchLines, size_t lineAmount)
       memset(currentFileName, '\0', sizeof(currentFileName));
       strcpy(currentFileName, patchLines[i]);
       getNameFromString(currentFileName, &patches[currentPatch]);
-      //printf("filename: %s\n", patches[currentPatch].filename);
       currentConfigLines[0] = currentTextLine;
       currentConfigLines[1] = currentTextLine + 3;
-      /*patches[currentPatch].configlines[0] = currentTextLine;*/
-      /*patches[currentPatch].configlines[1] = currentTextLine + 4;*/
       memcpy(patches[currentPatch].configlines, currentConfigLines, sizeof(currentConfigLines));
     }
 
@@ -80,17 +87,21 @@ static patchData* disectPatches(char **patchLines, size_t lineAmount)
       if (prevDiffCount > 1)
       {
         patches[currentPatch].codelines[1] = currentTextLine - 1;
-        printf("currentFileName: %s\n", currentFileName);
         getNameFromString(currentFileName, &patches[currentPatch]);
         memcpy(patches[currentPatch].configlines, currentConfigLines, sizeof(currentConfigLines));
+        
+        if (currentPatch >= patchAmount - 1)
+        {
+          patchAmount += 5;
+          patches = realloc(patches, sizeof(patchData) * patchAmount);
+        }
         currentPatch++;
       }
       
-      char extractLineNumber[150];
+      char extractLineNumber[MAXBUF];
       memset(extractLineNumber, '\0', sizeof(extractLineNumber));
       strcpy(extractLineNumber, patchLines[i]);
       patches[currentPatch].place = getNumFromString(extractLineNumber);
-      //printf("place: %d\n", patches[currentPatch].place);
 
       patches[currentPatch].codelines[0] = currentTextLine;
     }
@@ -101,10 +112,11 @@ static patchData* disectPatches(char **patchLines, size_t lineAmount)
   memcpy(patches[currentPatch].configlines, currentConfigLines, sizeof(currentConfigLines));
   patches[currentPatch].codelines[1] = currentTextLine - 1;
 
-  return patches;
+  returnPatchData result = {.data = patches, .amount = currentPatch + 1};
+  return result;
 }
 
-static patchData* getPatchComps(char *patchFilePath)
+static returnPatchData getPatchComps(char *patchFilePath)
 {
   FILE *patchFile = fopen(patchFilePath, "r");
   if (patchFile == NULL)
@@ -113,7 +125,7 @@ static patchData* getPatchComps(char *patchFilePath)
     exit(EXIT_FAILURE);
   }
   
-  char chunk[128];
+  char chunk[MAXBUF];
   size_t len = sizeof(chunk);
   char *line = malloc(len * sizeof(char));
   if (line == NULL)
@@ -123,7 +135,7 @@ static patchData* getPatchComps(char *patchFilePath)
   }
   line[0] = '\0';
 
-  unsigned int allocatedLines = 40;
+  unsigned int allocatedLines = 100;
   char **textFromFile = malloc(sizeof(char*) * allocatedLines);
   if (textFromFile == NULL)
   {
@@ -155,7 +167,7 @@ static patchData* getPatchComps(char *patchFilePath)
     {
       if (iterations >= allocatedLines)
       {
-        allocatedLines += 40;
+        allocatedLines += 50;
         if ((textFromFile = (char**)realloc(textFromFile,sizeof(char*) * allocatedLines)) == NULL)
         {
           perror("reallocation failed\n");
@@ -168,10 +180,10 @@ static patchData* getPatchComps(char *patchFilePath)
       iterations++;
     }
   }
-  patchData *patches = disectPatches(textFromFile, iterations);
-  for (int i = 0; i < 4; i++)
+  returnPatchData patches = disectPatches(textFromFile, iterations);
+  for (int i = 0; i < patches.amount; i++)
   {
-    printPatchData(&patches[i]);
+    strcpy(patches.data[i].patchname, patchFilePath);
   }
 
   fclose(patchFile);
@@ -180,10 +192,15 @@ static patchData* getPatchComps(char *patchFilePath)
     free(textFromFile[i]);
   free(textFromFile);
 
-  return NULL;
+  return patches;
 }
 
 void createPatchFiles(char **patchFilePaths)
 {
-  getPatchComps("/home/arne/code/cproj/patchableC/patches/surf-clipboard-20200112-a6a8878.diff");
+  returnPatchData patches = getPatchComps("/home/arne/code/cproj/patchableC/patches/surf-clipboard-20200112-a6a8878.diff");
+  
+  for (int i = 0; i < patches.amount; i++)
+  {
+    printPatchData(&patches.data[i]);
+  }
 }

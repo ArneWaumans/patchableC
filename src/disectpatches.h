@@ -10,18 +10,26 @@
 
 typedef struct patchData
 {
-  char patchname[50];
-  char filename[50];
+  char patchname[MAXBUF];
+  char filename[FILEBUF];
   int place;
   int configlines[2];
   int codelines[2];
 } patchData;
 
-void printPatchData(patchData* data);
+typedef struct returnPatchData
+{
+  patchData *data;
+  unsigned int amount;
+} returnPatchData;
+
 static unsigned int getNumFromString(char *numString);
-void getNameFromString(char *nameString, patchData *data);
-static patchData* disectPatches(char **patchLines, size_t lineAmount);
-static patchData* getPatchComps(char *patchFilePath);
+static void getNameFromString(char *nameString, patchData *data);
+static returnPatchData disectPatches(char **patchLines, size_t lineAmount);
+static returnPatchData getPatchComps(char *patchFilePath);
+
+void printPatchData(patchData *data);
 void createPatchFiles(char **patchFilePaths);
+void freePatchData(patchData *data);
 
 #endif

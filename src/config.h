@@ -1,2 +1,3 @@
 
-#define MAXBUF 200
+#define MAXBUF 256
+#define FILEBUF 50

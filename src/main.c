@@ -51,9 +51,8 @@ int main()
   for (int i = 0; i < patchFiles->numPatchFiles; i++)
     printf("patch file: %s\n", patchFiles->patches[i]);
 
-  freePatchFiles(patchFiles);
-
   createPatchFiles(patchFiles->patches);
 
+  freePatchFiles(patchFiles);
   removeFolders();
 }
