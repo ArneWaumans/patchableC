@@ -7,6 +7,7 @@
 #include <stdbool.h>
 
 #include "config.h"
+#include "getpatchnames.h"
 
 typedef struct patchData
 {
@@ -29,7 +30,7 @@ static returnPatchData disectPatches(char **patchLines, size_t lineAmount);
 static returnPatchData getPatchComps(char *patchFilePath);
 
 void printPatchData(patchData *data);
-void createPatchFiles(char **patchFilePaths);
+void createPatchFiles(patches *patchFilePaths);
 void freePatchData(patchData *data);
 
 #endif

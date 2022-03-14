@@ -195,12 +195,22 @@ static returnPatchData getPatchComps(char *patchFilePath)
   return patches;
 }
 
-void createPatchFiles(char **patchFilePaths)
+void createPatchFiles(patches *patchFilePaths)
 {
-  returnPatchData patches = getPatchComps("/home/arne/code/cproj/patchableC/patches/surf-clipboard-20200112-a6a8878.diff");
+  /*returnPatchData patches = getPatchComps("/home/runner/patchableC/patches/surf-clipboard-20200112-a6a8878.diff");
   
   for (int i = 0; i < patches.amount; i++)
+    printPatchData(&patches.data[i]);*/
+
+  for (int i = 0; i < patchFilePaths->numPatchFiles; i++)
   {
-    printPatchData(&patches.data[i]);
+    // check if directory is real
+    if (patchFilePaths->patches[i][strlen(patchFilePaths->patches[i]) - 1] == '.')
+      continue;
+    
+    printf("real dirs: %s\n", patchFilePaths->patches[i]);
+    returnPatchData patches = getPatchComps(patchFilePaths->patches[i]);
+    for (int j = 0; j < patches.amount; j++)
+      printPatchData(&patches.data[j]);
   }
 }
