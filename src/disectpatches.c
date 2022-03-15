@@ -13,6 +13,7 @@ void printPatchData(patchData *data)
 
 static unsigned int getNumFromString(char *numString)
 {
+  // every location in a patchfile is between "-" and ","
   numString = strtok(numString, "-");
   numString = strtok(NULL, ",");
 
@@ -29,6 +30,8 @@ static void getNameFromString(char *nameString, patchData *data)
   char cpyNameString[MAXBUF];
   memset(cpyNameString, '\0', sizeof(cpyNameString));
   char *cpyNameStringPtr = strcpy(cpyNameString, nameString);
+  
+  // the name of the filename is between "/" and " "
   cpyNameStringPtr = strtok(cpyNameStringPtr, "/");
   cpyNameStringPtr = strtok(NULL, " ");
   strcpy(data->filename, cpyNameStringPtr);
@@ -36,6 +39,7 @@ static void getNameFromString(char *nameString, patchData *data)
 
 static returnPatchData disectPatches(char **patchLines, size_t lineAmount)
 {
+  // initialize patch data
   const unsigned int startPatchAmount = 8;
   unsigned int patchAmount = startPatchAmount;
   patchData *patches = malloc(sizeof(patchData) * startPatchAmount);
@@ -43,8 +47,10 @@ static returnPatchData disectPatches(char **patchLines, size_t lineAmount)
 
   unsigned int currentTextLine = 1;
   bool firstCommit = true;
+  // necessary for algorithm
   int prevDiffCount = 0;
 
+  // can be the same for multiple pathces
   char currentFileName[MAXBUF];
   int currentConfigLines[2] = {0, 0};
 
@@ -52,6 +58,7 @@ static returnPatchData disectPatches(char **patchLines, size_t lineAmount)
   {
     printf("%d: %s", currentTextLine, patchLines[i]);
 
+    // check if the current line contains important data
     char *diffMatch = strstr(patchLines[i], "diff --git");
     char *atLine = strstr(patchLines[i], "@@");
 
@@ -65,18 +72,25 @@ static returnPatchData disectPatches(char **patchLines, size_t lineAmount)
 
         if (currentPatch >= patchAmount - 1)
         {
+          // reallocate extra memory if necessary
           patchAmount += 5;
           patches = realloc(patches, sizeof(patchData) * patchAmount);
         }
         currentPatch++;
       }
       firstCommit = false;
-     
+
+      // prepare data for getNameFromString() and set the filename
       memset(currentFileName, '\0', sizeof(currentFileName));
       strcpy(currentFileName, patchLines[i]);
       getNameFromString(currentFileName, &patches[currentPatch]);
+
+      // format check, some patches contain an index line
       currentConfigLines[0] = currentTextLine;
-      currentConfigLines[1] = currentTextLine + 3;
+      if (strncmp("index", patchLines[i+1], strlen(index)) == 0)
+        currentConfigLines[1] = currentTextLine + 3;
+      else
+        currentConfigLines[1] = currentTextLine + 2;
       memcpy(patches[currentPatch].configlines, currentConfigLines, sizeof(currentConfigLines));
     }
 
@@ -92,12 +106,14 @@ static returnPatchData disectPatches(char **patchLines, size_t lineAmount)
         
         if (currentPatch >= patchAmount - 1)
         {
+          // reallocate extra memory if necessary
           patchAmount += 5;
           patches = realloc(patches, sizeof(patchData) * patchAmount);
         }
         currentPatch++;
       }
-      
+
+      // prepare data for getNumFromString() and set the line number
       char extractLineNumber[MAXBUF];
       memset(extractLineNumber, '\0', sizeof(extractLineNumber));
       strcpy(extractLineNumber, patchLines[i]);
@@ -197,20 +213,16 @@ static returnPatchData getPatchComps(char *patchFilePath)
 
 void createPatchFiles(patches *patchFilePaths)
 {
-  /*returnPatchData patches = getPatchComps("/home/runner/patchableC/patches/surf-clipboard-20200112-a6a8878.diff");
-  
-  for (int i = 0; i < patches.amount; i++)
-    printPatchData(&patches.data[i]);*/
-
   for (int i = 0; i < patchFilePaths->numPatchFiles; i++)
   {
     // check if directory is real
     if (patchFilePaths->patches[i][strlen(patchFilePaths->patches[i]) - 1] == '.')
       continue;
     
-    printf("real dirs: %s\n", patchFilePaths->patches[i]);
+    printf("-----real dirs: %s-----\n", patchFilePaths->patches[i]);
     returnPatchData patches = getPatchComps(patchFilePaths->patches[i]);
     for (int j = 0; j < patches.amount; j++)
       printPatchData(&patches.data[j]);
+    freePatchData(patches.data);
   }
 }

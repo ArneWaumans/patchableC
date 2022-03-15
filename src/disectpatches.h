@@ -14,7 +14,9 @@ typedef struct patchData
   char patchname[MAXBUF];
   char filename[FILEBUF];
   int place;
+  // this contains the lines from "dif --git" to "+++ b/"
   int configlines[2];
+  // this contains the lines from "@@ -" to the end
   int codelines[2];
 } patchData;
 
