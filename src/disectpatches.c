@@ -37,7 +37,7 @@ static void getNameFromString(char *nameString, patchData *data)
   strcpy(data->filename, cpyNameStringPtr);
 }
 
-static returnPatchData disectPatches(char **patchLines, size_t lineAmount)
+static arrPatchData disectPatches(char **patchLines, size_t lineAmount)
 {
   // initialize patch data
   const unsigned int startPatchAmount = 8;
@@ -128,11 +128,11 @@ static returnPatchData disectPatches(char **patchLines, size_t lineAmount)
   memcpy(patches[currentPatch].configlines, currentConfigLines, sizeof(currentConfigLines));
   patches[currentPatch].codelines[1] = currentTextLine - 1;
 
-  returnPatchData result = {.data = patches, .amount = currentPatch + 1};
+  arrPatchData result = {.data = patches, .amount = currentPatch + 1};
   return result;
 }
 
-static returnPatchData getPatchComps(char *patchFilePath)
+static arrPatchData getPatchComps(char *patchFilePath)
 {
   FILE *patchFile = fopen(patchFilePath, "r");
   if (patchFile == NULL)
@@ -196,7 +196,7 @@ static returnPatchData getPatchComps(char *patchFilePath)
       iterations++;
     }
   }
-  returnPatchData patches = disectPatches(textFromFile, iterations);
+  arrPatchData patches = disectPatches(textFromFile, iterations);
   for (int i = 0; i < patches.amount; i++)
   {
     strcpy(patches.data[i].patchname, patchFilePath);
@@ -213,6 +213,9 @@ static returnPatchData getPatchComps(char *patchFilePath)
 
 void createPatchFiles(patches *patchFilePaths)
 {
+  // patch array that is going to hold all our patch data and the amount
+  arrPatchData allPatches = {.data = NULL, .amount = 0};
+  
   for (int i = 0; i < patchFilePaths->numPatchFiles; i++)
   {
     // check if directory is real
@@ -220,9 +223,22 @@ void createPatchFiles(patches *patchFilePaths)
       continue;
     
     printf("-----real dirs: %s-----\n", patchFilePaths->patches[i]);
-    returnPatchData patches = getPatchComps(patchFilePaths->patches[i]);
+    // get patches from current patch file
+    arrPatchData patches = getPatchComps(patchFilePaths->patches[i]);
+    
+    // reallocate for extra patch data
+    allPatches.data = (patchData*)realloc(allPatches.data, allPatches.amount + patches.amount);
+    allPatches.amount += patches.amount;
+    
     for (int j = 0; j < patches.amount; j++)
-      printPatchData(&patches.data[j]);
-    freePatchData(patches.data);
+    {
+      //printPatchData(&patches.data[j]);
+
+      allPatches.data[allPatches.amount + j] = patches.data[j];
+    }
+    //freePatchData(patches.data);
   }
+
+  for (int i = 0; i < allPatches.amount; i++)
+    printPatchData(&allPatches.data[i]);
 }
