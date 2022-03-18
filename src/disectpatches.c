@@ -219,24 +219,25 @@ void createPatchFiles(patches *patchFilePaths)
   for (int i = 0; i < patchFilePaths->numPatchFiles; i++)
   {
     // check if directory is real
-    if (patchFilePaths->patches[i][strlen(patchFilePaths->patches[i]) - 1] == '.')
-      continue;
-    
-    printf("-----real dirs: %s-----\n", patchFilePaths->patches[i]);
-    // get patches from current patch file
-    arrPatchData patches = getPatchComps(patchFilePaths->patches[i]);
-    
-    // reallocate for extra patch data
-    allPatches.data = (patchData*)realloc(allPatches.data, allPatches.amount + patches.amount);
-    allPatches.amount += patches.amount;
-    
-    for (int j = 0; j < patches.amount; j++)
+    if (!(patchFilePaths->patches[i][strlen(patchFilePaths->patches[i]) - 1] == '.'))
     {
-      //printPatchData(&patches.data[j]);
-
-      allPatches.data[allPatches.amount + j] = patches.data[j];
+      printf("-----real dirs: %s-----\n", patchFilePaths->patches[i]);
+      // get patches from current patch file
+      arrPatchData getPatches = getPatchComps(patchFilePaths->patches[i]);
+      // reallocate for extra patch data
+      allPatches.data = (patchData*)realloc(allPatches.data, (allPatches.amount + getPatches.amount) * sizeof(patchData));
+      if (allPatches.data == NULL)
+      {
+        perror("reallocation failed\n");
+        exit(1);
+      }
+    
+      for (int j = 0; j < getPatches.amount; j++)
+        memcpy(&allPatches.data[allPatches.amount+j], &getPatches.data[j], sizeof(patchData));
+      allPatches.amount += getPatches.amount;
+      
+      freePatchData(getPatches.data);
     }
-    //freePatchData(patches.data);
   }
 
   for (int i = 0; i < allPatches.amount; i++)
