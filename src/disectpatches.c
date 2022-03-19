@@ -87,7 +87,7 @@ static arrPatchData disectPatches(char **patchLines, size_t lineAmount)
 
       // format check, some patches contain an index line
       currentConfigLines[0] = currentTextLine;
-      if (strncmp("index", patchLines[i+1], strlen(index)) == 0)
+      if (strncmp("index", patchLines[i+1], strlen("index")) == 0)
         currentConfigLines[1] = currentTextLine + 3;
       else
         currentConfigLines[1] = currentTextLine + 2;
@@ -190,7 +190,7 @@ static arrPatchData getPatchComps(char *patchFilePath)
           exit(1);
         }
       }
-      textFromFile[iterations] = (char*)malloc(strlen(line) * sizeof(char));
+      textFromFile[iterations] = (char*)malloc((strlen(line) + 1) * sizeof(char));
       strcpy(textFromFile[iterations], line);
       line[0] = '\0';
       iterations++;
@@ -225,7 +225,7 @@ void createPatchFiles(patches *patchFilePaths)
       // get patches from current patch file
       arrPatchData getPatches = getPatchComps(patchFilePaths->patches[i]);
       // reallocate for extra patch data
-      allPatches.data = (patchData*)realloc(allPatches.data, (allPatches.amount + getPatches.amount) * sizeof(patchData));
+      allPatches.data = realloc(allPatches.data, (allPatches.amount + getPatches.amount) * sizeof(patchData));
       if (allPatches.data == NULL)
       {
         perror("reallocation failed\n");
