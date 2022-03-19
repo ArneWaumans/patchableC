@@ -276,6 +276,17 @@ static arrPatchData getPatchComps(char *patchFilePath)
   return patches;
 }
 
+char* toArray(int number)
+{
+    int n = (int)log10(number) + 1;
+    int i;
+    char *numberArray = calloc(n, sizeof(char));
+    for (i = n-1; i >= 0; --i, number /= 10)
+    {
+        numberArray[i] = (number % 10) + '0';
+    }
+    return numberArray;
+}
 void createPatchFiles(patches *patchFilePaths)
 {
   // patch array that is going to hold all our patch data and the amount
@@ -307,5 +318,9 @@ void createPatchFiles(patches *patchFilePaths)
   allPatches.data = sortPatchData(&allPatches);
 
   for(int i = 0; i < allPatches.amount; i++)
-    printPatchData(&allPatches.data[i]);
+  {
+    char *charNum = toArray(i);
+    printf("%s\n", charNum);
+    free(charNum);
+  }
 }
