@@ -37,6 +37,71 @@ static void getNameFromString(char *nameString, patchData *data)
   strcpy(data->filename, cpyNameStringPtr);
 }
 
+int compare (const void * a, const void * b)
+{
+  return ( *(int*)a - *(int*)b );
+}
+static patchData* sortPatchData(arrPatchData *allPatches)
+{
+  unsigned int arrSize = allPatches->amount;
+  patchData *newPatchData = malloc(arrSize * sizeof(patchData));
+
+  char **uniqueFileNames = NULL;
+  int numUniqueFileNames = 0;
+
+  for(int i = 0; i < arrSize; i++)
+  {
+    bool fileIncluded = false;
+    for (int j = 0; j < numUniqueFileNames; j++)
+    {
+      if (strncmp(uniqueFileNames[j], allPatches->data[i].filename, strlen(allPatches->data[i].filename)) == 0)
+      {
+        fileIncluded = true;
+        break;
+      }
+    }
+
+    if (!fileIncluded)
+    {
+      uniqueFileNames = realloc(uniqueFileNames, ++numUniqueFileNames * sizeof(char*));
+      uniqueFileNames[i] = malloc(strlen(allPatches->data[i].filename));
+      strcpy(uniqueFileNames[i], allPatches->data[i].filename);
+    }
+  }
+
+  int newPatchDataIndex = 0;
+  for (int i = 0; i < numUniqueFileNames; i++)
+  {
+    int numPatchComps = 0;
+    int *patchCompPlaces = NULL;
+    for (int j = 0; j < arrSize; j++)
+    {
+      if (strncmp(uniqueFileNames[i], allPatches->data[j].filename, strlen(allPatches->data[j].filename)) == 0)
+      {
+        patchCompPlaces = realloc(patchCompPlaces, ++numPatchComps);
+        patchCompPlaces[numPatchComps-1] = allPatches->data[j].place;
+      }
+    }
+
+    qsort(patchCompPlaces, numPatchComps, sizeof(int), compare);
+
+    for (int j = 0; j < numPatchComps; j++)
+    {
+      for (int k = 0; k < arrSize; k++)
+      {
+        if(patchCompPlaces[j] == allPatches->data[k].place)
+          memcpy(&newPatchData[newPatchDataIndex], &allPatches->data[k], sizeof(patchData));
+      }
+      newPatchDataIndex++;
+    }
+
+    free(patchCompPlaces);
+  }
+
+  freePatchData(allPatches->data);
+  return newPatchData;
+}
+
 static arrPatchData disectPatches(char **patchLines, size_t lineAmount)
 {
   // initialize patch data
@@ -187,7 +252,7 @@ static arrPatchData getPatchComps(char *patchFilePath)
         if ((textFromFile = (char**)realloc(textFromFile,sizeof(char*) * allocatedLines)) == NULL)
         {
           perror("reallocation failed\n");
-          exit(1);
+          exit(EXIT_FAILURE);
         }
       }
       textFromFile[iterations] = (char*)malloc((strlen(line) + 1) * sizeof(char));
@@ -229,17 +294,18 @@ void createPatchFiles(patches *patchFilePaths)
       if (allPatches.data == NULL)
       {
         perror("reallocation failed\n");
-        exit(1);
+        exit(EXIT_FAILURE);
       }
     
-      for (int j = 0; j < getPatches.amount; j++)
-        memcpy(&allPatches.data[allPatches.amount+j], &getPatches.data[j], sizeof(patchData));
+      memcpy(&allPatches.data[allPatches.amount], getPatches.data, getPatches.amount * sizeof(patchData));
       allPatches.amount += getPatches.amount;
       
       freePatchData(getPatches.data);
     }
   }
 
-  for (int i = 0; i < allPatches.amount; i++)
+  allPatches.data = sortPatchData(&allPatches);
+
+  for(int i = 0; i < allPatches.amount; i++)
     printPatchData(&allPatches.data[i]);
 }
