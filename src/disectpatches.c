@@ -102,6 +102,12 @@ static patchData* sortPatchData(arrPatchData *allPatches)
   return newPatchData;
 }
 
+static bool betweenLines(unsigned int line, patchData *allPatches)
+{
+  return ((allPatches->configlines[0] <= line && allPatches->configlines[1] >= line) ||
+          (allPatches->codelines[0] <= line && allPatches->codelines[1] >= line));
+}
+
 static arrPatchData disectPatches(char **patchLines, size_t lineAmount)
 {
   // initialize patch data
@@ -319,8 +325,55 @@ void createPatchFiles(patches *patchFilePaths)
 
   for(int i = 0; i < allPatches.amount; i++)
   {
-    char *charNum = toArray(i);
-    printf("%s\n", charNum);
+    char *charNum = toArray(i+1);
+    char patchCompName[MAXBUF];
+    getcwd(patchCompName, MAXBUF);
+    strcat(patchCompName, "/patchcomps/");
+    strcat(patchCompName, charNum);
+    strcat(patchCompName, "-");
+    strcat(patchCompName, allPatches.data[i].filename);
+    strcat(patchCompName, ".diff");
     free(charNum);
+
+    printf("%s\n", patchCompName);
+    printPatchData(&allPatches.data[i]);
+
+    FILE *srcFile = fopen(allPatches.data[i].patchname, "r");
+    FILE *destFile= fopen(patchCompName, "a");
+    unsigned int currentLine = 0;
+    char chunk[MAXBUF];
+    size_t len = sizeof(chunk);
+    char *line = malloc(len * sizeof(char));
+
+    while(fgets(chunk, sizeof(chunk), srcFile) != NULL)
+    {
+      size_t len_used = strlen(line);
+      size_t chunk_used = strlen(chunk);
+
+      if (len - len_used < chunk_used)
+      {
+        len *= 2;
+        if ((line = realloc(line, len)) == NULL)
+        {
+          perror("Unable to reallocate memory");
+          free(line);
+          exit(EXIT_FAILURE);
+        }
+      }
+
+      strncpy(line + len_used, chunk, len - len_used);
+      len_used += chunk_used;
+
+      if (line[len_used - 1] == '\n')
+      {
+        currentLine++;
+        if (betweenLines(currentLine, &allPatches.data[i]))
+          printf(":%s", line);
+        line[0] = '\0';
+      }
+    }
+
+    fclose(srcFile);
+    fclose(destFile);
   }
 }

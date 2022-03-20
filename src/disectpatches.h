@@ -32,6 +32,7 @@ static void getNameFromString(char *nameString, patchData *data);
 static arrPatchData disectPatches(char **patchLines, size_t lineAmount);
 static arrPatchData getPatchComps(char *patchFilePath);
 static patchData* sortPatchData(arrPatchData *allPatches);
+static bool betweenLines(unsigned int line, patchData *allPatches);
 
 void printPatchData(patchData *data);
 void createPatchFiles(patches *patchFilePaths);
