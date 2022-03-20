@@ -368,7 +368,10 @@ void createPatchFiles(patches *patchFilePaths)
       {
         currentLine++;
         if (betweenLines(currentLine, &allPatches.data[i]))
+        {
           printf(":%s", line);
+          fprintf(destFile, "%s", line);
+        }
         line[0] = '\0';
       }
     }
