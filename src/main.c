@@ -51,8 +51,12 @@ int main()
   for (int i = 0; i < patchFiles->numPatchFiles; i++)
     printf("patch file: %s\n", patchFiles->patches[i]);
 
-  createPatchFiles(patchFiles);
+  arrPatchData allPatches = createPatchFiles(patchFiles);
+
+  applyPatches(allPatches);
+
+  removeFolders();
 
   freePatchFiles(patchFiles);
-  removeFolders();
+  freePatchData(allPatches.data);
 }

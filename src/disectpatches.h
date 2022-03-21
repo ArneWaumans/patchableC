@@ -35,7 +35,7 @@ static patchData* sortPatchData(arrPatchData *allPatches);
 static bool betweenLines(unsigned int line, patchData *allPatches);
 
 void printPatchData(patchData *data);
-void createPatchFiles(patches *patchFilePaths);
+arrPatchData createPatchFiles(patches *patchFilePaths);
 void freePatchData(patchData *data);
 
 #endif

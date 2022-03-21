@@ -293,7 +293,7 @@ char* toArray(int number)
     }
     return numberArray;
 }
-void createPatchFiles(patches *patchFilePaths)
+arrPatchData createPatchFiles(patches *patchFilePaths)
 {
   // patch array that is going to hold all our patch data and the amount
   arrPatchData allPatches = {.data = NULL, .amount = 0};
@@ -335,12 +335,10 @@ void createPatchFiles(patches *patchFilePaths)
     strcat(patchCompName, ".diff");
     free(charNum);
 
-    printf("%s\n", patchCompName);
-    printPatchData(&allPatches.data[i]);
-
     FILE *srcFile = fopen(allPatches.data[i].patchname, "r");
     FILE *destFile= fopen(patchCompName, "a");
     unsigned int currentLine = 0;
+    
     char chunk[MAXBUF];
     size_t len = sizeof(chunk);
     char *line = malloc(len * sizeof(char));
@@ -378,5 +376,9 @@ void createPatchFiles(patches *patchFilePaths)
 
     fclose(srcFile);
     fclose(destFile);
+
+    strcpy(allPatches.data[i].filename, patchCompName);
   }
+
+  return allPatches;
 }
