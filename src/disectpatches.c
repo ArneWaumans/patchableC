@@ -372,6 +372,7 @@ arrPatchData createPatchFiles(patches *patchFilePaths)
         }
         line[0] = '\0';
       }
+
     }
 
     fclose(srcFile);
@@ -379,6 +380,5 @@ arrPatchData createPatchFiles(patches *patchFilePaths)
 
     strcpy(allPatches.data[i].filename, patchCompName);
   }
-
   return allPatches;
 }

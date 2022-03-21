@@ -3,6 +3,7 @@
 .replit
 replit.nix
 patchable
+surf
 vimspector.json
 .vscode
 

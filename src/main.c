@@ -55,7 +55,7 @@ int main()
 
   applyPatches(allPatches);
 
-  removeFolders();
+  //removeFolders();
 
   freePatchFiles(patchFiles);
   freePatchData(allPatches.data);
