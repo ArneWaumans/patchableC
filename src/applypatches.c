@@ -27,7 +27,7 @@ void applyPatches(arrPatchData allPatches)
     char command[MAXBUF];
     strcpy(command, "git apply ");
     strcat(command, allPatches.data[i].filename);
-    printf("command: %s", command);
+    printf("command: %s\n", command);
 
     system(command);
 

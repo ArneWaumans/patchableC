@@ -42,8 +42,21 @@ static void removeFolders()
   rmdir(patchCompDir);
 }
 
-int main()
-{
+/* TODO: add funtionality to choose the directory from where to load the .diff files */
+int main(int argc, char *argv[])
+{   
+  char patchDir[MAXBUF];
+  if (argc == 2)
+  {
+    strcpy(patchDir, argv[1]);
+    printf("patch folder: %s\n", patchDir);
+  }
+  else if (argc > 2)
+  {
+    perror("Too many command line arguments");
+    exit(-1);
+  }
+  
   setupFolders();
 
   patches *patchFiles = getPatchFiles();
@@ -55,7 +68,7 @@ int main()
 
   applyPatches(allPatches);
 
-  //removeFolders();
+  removeFolders();
 
   freePatchFiles(patchFiles);
   freePatchData(allPatches.data);
