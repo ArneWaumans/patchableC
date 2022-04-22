@@ -2,6 +2,7 @@
 .breakpoints
 .replit
 replit.nix
+.gitpod.yml
 patchable
 surf
 vimspector.json

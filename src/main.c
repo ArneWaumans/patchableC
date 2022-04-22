@@ -45,7 +45,7 @@ static void removeFolders()
 /* TODO: add funtionality to choose the directory from where to load the .diff files */
 int main(int argc, char *argv[])
 {   
-  char patchDir[MAXBUF];
+  char* patchDir = malloc(sizeof(char) * MAXBUF);
   if (argc == 2)
   {
     strcpy(patchDir, argv[1]);
@@ -56,10 +56,14 @@ int main(int argc, char *argv[])
     perror("Too many command line arguments");
     exit(-1);
   }
+  else
+  {
+    patchDir = NULL;
+  }
   
   setupFolders();
 
-  patches *patchFiles = getPatchFiles();
+  patches *patchFiles = getPatchFiles(patchDir);
   
   for (int i = 0; i < patchFiles->numPatchFiles; i++)
     printf("patch file: %s\n", patchFiles->patches[i]);
@@ -69,6 +73,8 @@ int main(int argc, char *argv[])
   applyPatches(allPatches);
 
   removeFolders();
+
+  free(patchDir);
 
   freePatchFiles(patchFiles);
   freePatchData(allPatches.data);

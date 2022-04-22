@@ -15,15 +15,22 @@ void freePatchFiles(patches *patchObj)
   free(patchObj);
 }
 
-patches* getPatchFiles()
+patches* getPatchFiles(const char* inPatchDir)
 {
   int allocNumPatchFiles = 8;
   patches *patchFiles = malloc(sizeof(patches));
   initPatchFiles(patchFiles, allocNumPatchFiles);
 
   char patchDir[MAXBUF];
-  getcwd(patchDir, MAXBUF);
-  strcat(patchDir, "/patches");
+  if (inPatchDir == NULL)
+  {
+    getcwd(patchDir, MAXBUF);
+    strcat(patchDir, "/patches");
+  }
+  else
+  {
+    strcpy(patchDir, inPatchDir);
+  }
 
   DIR *dir;
   dir = opendir(patchDir);
